@@ -1,0 +1,64 @@
+# Hercules Ragnarok Online server: MariaDB plus login, char and map servers.
+# Copy .env.example to .env, set the passwords and PUBLIC_HOST, then:
+#   docker compose up -d --build
+x-hercules: &hercules
+  image: ${HERCULES_IMAGE:-hercules:local}
+  build:
+    context: .
+    args:
+      HERCULES_REF: ${HERCULES_REF:-v2026.09}
+      PACKETVER: ${PACKETVER:-20190530}
+      RENEWAL: ${RENEWAL:-ON}
+  restart: unless-stopped
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  environment: &env
+    DB_HOST: db
+    DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    INTER_PASSWORD: ${INTER_PASSWORD:?set INTER_PASSWORD in .env}
+    PUBLIC_HOST: ${PUBLIC_HOST:?set PUBLIC_HOST in .env}
+    NEW_ACCOUNT: ${NEW_ACCOUNT:-true}
+  depends_on:
+    db:
+      condition: service_healthy
+
+services:
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ragnarok
+      MARIADB_USER: ragnarok
+      MARIADB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - ./data/db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      retries: 12
+
+  login:
+    <<: *hercules
+    command: login-server
+    ports:
+      - "6900:6900"
+
+  char:
+    <<: *hercules
+    command: char-server
+    ports:
+      - "6121:6121"
+    depends_on:
+      - login
+
+  map:
+    <<: *hercules
+    command: map-server
+    ports:
+      - "5121:5121"
+    depends_on:
+      - char
+    volumes:
+      # Drop custom NPC scripts here and add them to npc/scripts_custom.conf.
+      - ./custom-npc:/opt/hercules/npc/custom
