@@ -130,6 +130,24 @@ administrator and, if the screen is black, in Windows 7 compatibility
 mode; a DirectX wrapper such as dgVoodoo fixes most remaining rendering
 problems.
 
+## Making the UI bigger
+
+The client draws its windows at fixed pixel sizes, so on a 4K screen the UI is
+tiny whatever resolution you pick. Render small and stretch instead:
+
+- **Linux desktop:** install `gamescope` and run
+  `client/launch-linux.sh --dir <client folder> --screen 3840x2160 --scale 2`.
+  Render size is screen / scale (`--scale 2` is 1920x1080 on a 4K screen, `3`
+  is 1280x720, `1.5` is 2560x1440). `--filter pixel` gives hard edges at a
+  whole-number scale, `fsr` (the default) smooths. Small text is rendered at
+  the small size and then stretched, so a lower scale reads better.
+- **Steam Deck:** Game Mode scales the game to the screen already.
+- **Windows:** not done yet. A DirectDraw wrapper such as dgVoodoo2 does the
+  same job.
+
+The client keeps its resolution in `savedata/OptionInfo.lua` (`WIDTH`,
+`HEIGHT`, `ISFULLSCREENMODE`); the launcher rewrites those to match.
+
 ## 6. Create the account
 
 Registration is on by default. At the login screen type a name ending in

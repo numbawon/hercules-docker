@@ -31,13 +31,16 @@ SHIMMED = ('datainfo', 'skillinfoz', 'stateicon')
 # needs files this client does not ship, so it stays Korean
 SKIPPED = ('worldviewdata', 'datainfo/addrandomoptionnametable.lub')
 # SystemEN file -> the name the 2020-02-19 exe loads from System/
+# The exe picks the "true" or the "Sak" (Sakray) variant by the servertype in
+# clientinfo.xml and by which NEMO patches are on, so each table is written
+# under both names.
 RENAMES = {
-    'itemInfo.lua': 'itemInfo_true.lub',
-    'mapInfo.lub': 'mapInfo_true.lub',
-    'Towninfo.lub': 'Towninfo.lub',
-    'achievements.lub': 'achievement_list.lub',
-    'OngoingQuests.lub': 'OngoingQuestInfoList_True.lub',
-    'RecommendedQuests.lub': 'RecommendedQuestInfoList_True.lub',
+    'itemInfo.lua': ['itemInfo_true.lub', 'itemInfo_Sak.lub'],
+    'mapInfo.lub': ['mapInfo_true.lub', 'mapInfo_sak.lub'],
+    'Towninfo.lub': ['Towninfo.lub'],
+    'achievements.lub': ['achievement_list.lub'],
+    'OngoingQuests.lub': ['OngoingQuestInfoList_True.lub', 'OngoingQuestInfoList_Sakray.lub', 'OngoingQuestInfoList.lub'],
+    'RecommendedQuests.lub': ['RecommendedQuestInfoList_True.lub', 'RecommendedQuestInfoList_Sakray.lub', 'RecommendedQuestInfoList.lub'],
 }
 
 
@@ -102,7 +105,8 @@ def main(repo, client):
     for f in os.listdir(se):
         p = os.path.join(se, f)
         if f in RENAMES and os.path.isfile(p):
-            shutil.copyfile(p, os.path.join(system, RENAMES[f]))
+            for target in RENAMES[f]:
+                shutil.copyfile(p, os.path.join(system, target))
         elif os.path.isfile(p) and f.endswith(('.lua', '.lub')):
             shutil.copyfile(p, os.path.join(system, f))
     os.makedirs(os.path.join(system, 'LuaFiles514'), exist_ok=True)

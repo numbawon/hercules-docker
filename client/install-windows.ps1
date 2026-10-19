@@ -14,8 +14,8 @@ param(
     [string]$Server = 'ro.numbawon.xyz',
     [string]$ZipUrl = 'http://rofull.gnjoy.com/Ragnarok_200304.zip',
     [string]$ZipSha256 = 'a00bd56f591c097ad84567128a6a2ccadc2ea98dbec7fa58b3a6c5fa94b8d092',
-    [string]$OverlayUrl = 'https://github.com/NumbaWon/hercules-docker/releases/download/client-english-1/english-overlay-2020-02-19.zip',
-    [string]$OverlaySha256 = '9c3ffeb8c6509f7db45a6888d730b4fe207d1fa78e62445d1b407e84c84a36c1',
+    [string]$OverlayUrl = 'https://github.com/NumbaWon/hercules-docker/releases/download/client-english-2/english-overlay-2020-02-19.zip',
+    [string]$OverlaySha256 = '76a5881d9c22f53b773246c838836e74b9d8dcdf7c27b82fe681608e19251cbe',
     [switch]$NoEnglish
 )
 $ErrorActionPreference = 'Stop'
