@@ -21,6 +21,8 @@ ENV PATH=/opt/conan/bin:$PATH
 RUN conan profile detect
 RUN git clone --depth 1 --branch "${HERCULES_REF}" https://github.com/HerculesWS/Hercules.git /src
 WORKDIR /src
+COPY mask-passwords.sh /tmp/mask-passwords.sh
+RUN sh /tmp/mask-passwords.sh
 RUN set -e; \
     case "${PACKETTYPE}" in \
       main) TYPE_FLAG="" ;; \
