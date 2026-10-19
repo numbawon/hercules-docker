@@ -3,9 +3,34 @@
 The server is built for one client: the plain `Ragexe.exe` from the kRO
 build of **2020-02-19** (`PACKETVER=20200219`, packet family `main`). The
 client you run must be that build, or the character screen and in-game
-packets fail in odd ways. The patch names below are copied from NEMO's own
-patch list; the steps have not been run end to end against a live server
-yet, so the "If it will not connect" table at the bottom matters.
+packets fail in odd ways.
+
+## Quick install (Windows and Steam Deck)
+
+The `client/` folder automates everything below. It downloads Gravity's
+client from their own server (nothing of theirs is redistributed), applies
+a patch of about a hundred bytes, drops in the stub `CDClient.dll`, writes
+`clientinfo.xml` and makes a shortcut.
+
+- **Windows:** double-click `client/install-windows.bat`. Add
+  `-Server your.host.name` to the PowerShell line if you are not using
+  `ro.numbawon.xyz`.
+- **Steam Deck:** in Desktop Mode, quit Steam completely, then
+  `python3 client/install-steamdeck.py`. It adds "Family RO" to Steam as a
+  non-Steam game using Proton Experimental; Steam builds the Wine prefix on
+  the first launch. In Game Mode set the controller layout to
+  keyboard and mouse, the game wants both.
+
+`client/ragexe-2020-02-19.patch` lists the byte changes (offset, old bytes,
+new bytes) and checks the exe's SHA-256 before and after. It is the
+output of `client/nemo_patch.py`, a headless port of the four NEMO patches
+below, which you can run yourself on any `Ragexe.exe`:
+`python3 client/nemo_patch.py Ragexe.exe Ragexe_patched.exe`. The
+patched exe starts under Wine/Proton; the Windows installer script has not
+been run on a Windows machine yet.
+
+The manual route follows, for other client builds or if you would rather
+see what is being changed.
 
 ## 1. Get the client
 

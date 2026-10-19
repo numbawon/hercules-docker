@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<clientinfo>
+	<desc>Family RO</desc>
+	<servicetype>korea</servicetype>
+	<servertype>primary</servertype>
+	<connection>
+		<display>Family RO</display>
+		<address>ro.numbawon.xyz</address>
+		<port>6900</port>
+		<version>1</version>
+		<langtype>0</langtype>
+		<loading>
+			<image>loading00.jpg</image>
+			<image>loading01.jpg</image>
+		</loading>
+	</connection>
+</clientinfo>
