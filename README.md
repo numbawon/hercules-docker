@@ -58,6 +58,7 @@ in the compose file, since only newer clients use it.
 
 ## License
 
-Hercules is GPL v3 or later; the image contains its compiled binaries and
-`LICENSE`. Ragnarok Online is a trademark of its owners, and this project is
+The build files in this repository are MIT licensed (`LICENSE`). Hercules itself
+is GPL v3 or later, and the image contains its compiled binaries and its own
+license file. Ragnarok Online is a trademark of its owners, and this project is
 not affiliated with them.
