@@ -23,6 +23,8 @@ import zipfile
 
 ZIP_URL = 'http://rofull.gnjoy.com/Ragnarok_200304.zip'
 ZIP_SHA256 = 'a00bd56f591c097ad84567128a6a2ccadc2ea98dbec7fa58b3a6c5fa94b8d092'
+OVERLAY_URL = 'https://github.com/NumbaWon/hercules-docker/releases/download/client-english-1/english-overlay-2020-02-19.zip'
+OVERLAY_SHA256 = '9c3ffeb8c6509f7db45a6888d730b4fe207d1fa78e62445d1b407e84c84a36c1'
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -162,10 +164,12 @@ def main():
     ap.add_argument('--dir', default='~/Games/FamilyRO')
     ap.add_argument('--server', default='ro.numbawon.xyz')
     ap.add_argument('--proton', default='proton_experimental')
+    ap.add_argument('--no-english', action='store_true', help='leave the client text Korean')
+    ap.add_argument('--no-steam', action='store_true', help='only build the client folder')
     a = ap.parse_args()
     d = os.path.expanduser(a.dir)
 
-    if subprocess.run(['pgrep', '-x', 'steam'], capture_output=True).returncode == 0:
+    if not a.no_steam and subprocess.run(['pgrep', '-x', 'steam'], capture_output=True).returncode == 0:
         sys.exit('Steam is running. Quit it completely (Steam menu > Exit), then run this again.')
 
     os.makedirs(d, exist_ok=True)
@@ -179,6 +183,15 @@ def main():
         print('Unpacking...')
         zipfile.ZipFile(zp).extractall(d)
 
+    if not a.no_english:
+        ov = os.path.join(d, 'english-overlay.zip')
+        if not (os.path.exists(ov) and sha256(ov) == OVERLAY_SHA256):
+            print('Downloading the English text...')
+            subprocess.run(['curl', '-L', '-C', '-', '--fail', '-o', ov, OVERLAY_URL], check=True)
+        if sha256(ov) != OVERLAY_SHA256:
+            sys.exit('the English overlay does not match the expected file, stopping')
+        zipfile.ZipFile(ov).extractall(d)
+
     exe = os.path.join(d, 'Ragexe_patched.exe')
     apply_patch(os.path.join(d, 'Ragexe.exe'), exe, os.path.join(HERE, 'ragexe-2020-02-19.patch'))
     shutil.copy(os.path.join(HERE, 'CDClient.dll'), d)
@@ -187,6 +200,9 @@ def main():
     info = open(os.path.join(HERE, 'clientinfo.xml')).read().replace('ro.numbawon.xyz', a.server)
     open(os.path.join(d, 'data', 'clientinfo.xml'), 'w').write(info)
 
+    if a.no_steam:
+        print('\nClient folder ready: ' + exe)
+        return
     root = steam_root()
     users = [u for u in glob.glob(os.path.join(root, 'userdata', '*')) if os.path.basename(u).isdigit()]
     if not users:

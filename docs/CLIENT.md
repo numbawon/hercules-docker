@@ -9,8 +9,10 @@ packets fail in odd ways.
 
 The `client/` folder automates everything below. It downloads Gravity's
 client from their own server (nothing of theirs is redistributed), applies
-a patch of about a hundred bytes, drops in the stub `CDClient.dll`, writes
-`clientinfo.xml` and makes a shortcut.
+the exe patch, lays the English text over it (a pre-built overlay from this
+repo's [releases](https://github.com/NumbaWon/hercules-docker/releases),
+`--no-english` / `-NoEnglish` to skip), drops in the stub `CDClient.dll`,
+writes `clientinfo.xml` and makes a shortcut.
 
 - **Windows:** double-click `client/install-windows.bat`. Add
   `-Server your.host.name` to the PowerShell line if you are not using

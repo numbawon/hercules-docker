@@ -13,7 +13,10 @@ param(
     [string]$Dir = (Join-Path $env:USERPROFILE 'FamilyRO'),
     [string]$Server = 'ro.numbawon.xyz',
     [string]$ZipUrl = 'http://rofull.gnjoy.com/Ragnarok_200304.zip',
-    [string]$ZipSha256 = 'a00bd56f591c097ad84567128a6a2ccadc2ea98dbec7fa58b3a6c5fa94b8d092'
+    [string]$ZipSha256 = 'a00bd56f591c097ad84567128a6a2ccadc2ea98dbec7fa58b3a6c5fa94b8d092',
+    [string]$OverlayUrl = 'https://github.com/NumbaWon/hercules-docker/releases/download/client-english-1/english-overlay-2020-02-19.zip',
+    [string]$OverlaySha256 = '9c3ffeb8c6509f7db45a6888d730b4fe207d1fa78e62445d1b407e84c84a36c1',
+    [switch]$NoEnglish
 )
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -33,10 +36,29 @@ if (-not (Test-Path $zip) -or (Sha256 $zip) -ne $ZipSha256) {
 if ((Sha256 $zip) -ne $ZipSha256) { throw 'the downloaded client does not match the expected build, stopping' }
 
 # 2. unpack
+Add-Type -AssemblyName System.IO.Compression.FileSystem
 if (-not (Test-Path (Join-Path $Dir 'Ragexe.exe'))) {
     Write-Host 'Unpacking...'
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
     [IO.Compression.ZipFile]::ExtractToDirectory($zip, $Dir)
+}
+
+# 2b. English text (translation tables and textures, laid over the client)
+if (-not $NoEnglish) {
+    $ov = Join-Path $Dir 'english-overlay.zip'
+    if (-not (Test-Path $ov) -or (Sha256 $ov) -ne $OverlaySha256) {
+        Write-Host 'Downloading the English text...'
+        & curl.exe -L -C - --fail -o $ov $OverlayUrl
+        if ($LASTEXITCODE -ne 0) { throw "download failed (curl exit $LASTEXITCODE)" }
+    }
+    if ((Sha256 $ov) -ne $OverlaySha256) { throw 'the English overlay does not match the expected file, stopping' }
+    $za = [IO.Compression.ZipFile]::OpenRead($ov)
+    foreach ($e in $za.Entries) {
+        if ($e.FullName.EndsWith('/')) { continue }
+        $target = Join-Path $Dir $e.FullName
+        New-Item -ItemType Directory -Force -Path (Split-Path $target) | Out-Null
+        [IO.Compression.ZipFileExtensions]::ExtractToFile($e, $target, $true)
+    }
+    $za.Dispose()
 }
 
 # 3. patch the exe
