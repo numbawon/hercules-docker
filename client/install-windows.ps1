@@ -47,14 +47,16 @@ $srcHash = ($lines | Where-Object { $_ -like 'source-sha256 *' }).Split(' ')[1]
 $dstHash = ($lines | Where-Object { $_ -like 'result-sha256 *' }).Split(' ')[1]
 if ((Sha256 $src) -ne $srcHash) { throw 'Ragexe.exe is not the 2020-02-19 build this patch is for' }
 $bytes = [IO.File]::ReadAllBytes($src)
+$tail = New-Object System.Collections.Generic.List[byte]
 foreach ($l in $lines | Where-Object { $_ -notlike '*-sha256 *' }) {
+    if ($l.StartsWith('append ')) { $tail.AddRange([byte[]](HexBytes $l.Substring(7))); continue }
     $o, $old, $new = $l.Split(' ')
     $off = [Convert]::ToInt32($o, 16)
     $oldb = HexBytes $old; $newb = HexBytes $new
     for ($i = 0; $i -lt $oldb.Length; $i++) { if ($bytes[$off + $i] -ne $oldb[$i]) { throw "unexpected byte at 0x$o" } }
     [Array]::Copy($newb, 0, $bytes, $off, $newb.Length)
 }
-[IO.File]::WriteAllBytes($dst, $bytes)
+[IO.File]::WriteAllBytes($dst, ([byte[]]$bytes + $tail.ToArray()))
 if ((Sha256 $dst) -ne $dstHash) { throw 'patched exe does not match the expected result' }
 
 # 4. stub anti-cheat DLL, GRF list, server address

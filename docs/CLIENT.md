@@ -22,12 +22,13 @@ a patch of about a hundred bytes, drops in the stub `CDClient.dll`, writes
   keyboard and mouse, the game wants both.
 
 `client/ragexe-2020-02-19.patch` lists the byte changes (offset, old bytes,
-new bytes) and checks the exe's SHA-256 before and after. It is the
-output of `client/nemo_patch.py`, a headless port of the four NEMO patches
-below, which you can run yourself on any `Ragexe.exe`:
-`python3 client/nemo_patch.py Ragexe.exe Ragexe_patched.exe`. The
-patched exe starts under Wine/Proton; the Windows installer script has not
-been run on a Windows machine yet.
+new bytes, plus the code section NEMO appends) and checks the exe's SHA-256
+before and after. It was made by patching the original `Ragexe.exe` in NEMO
+(under Wine on Linux is fine) and running
+`python3 client/make_patch.py Ragexe.exe Ragexe_nemo.exe ragexe-2020-02-19.patch`.
+Tested: with this patch the client logs in to this server, registers an
+account with `name_M`, creates a character and reaches the game. The Windows
+installer script has not been run on a Windows machine yet.
 
 The manual route follows, for other client builds or if you would rather
 see what is being changed.
@@ -71,6 +72,13 @@ run `NEMO.exe`; it needs no install). Patch lists per client are at
    | **Disable 1rag1 type parameters** | lets the exe start directly, without the launcher's arguments |
    | **Enable DNS support for clientinfo.xml** | needed because the server address is a hostname |
    | **Read Data Folder First** | loose files in `data/` override the GRFs, so a custom `clientinfo.xml` wins |
+
+   Also keep NEMO's green **Recommended** patches ticked. They include
+   **Remove hardcoded address/port** and **Restore old login packet**, which
+   are what stop the 2020 client from logging in through Gravity's servers
+   instead of yours (without them it dials Gravity addresses such as
+   `112.175.128.139:6953` and never contacts your login server). Do **not**
+   use **Restore Login Window**: it fails on this exe and is not needed.
 
    Optional: **Disable Multiple Windows** if you want to run two clients at
    once.

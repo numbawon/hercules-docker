@@ -44,6 +44,9 @@ def apply_patch(src, dst, patch_file):
     for l in lines:
         if l[0].endswith('-sha256'):
             continue
+        if l[0] == 'append':
+            data += bytes.fromhex(l[1])
+            continue
         off, old, new = int(l[0], 16), bytes.fromhex(l[1]), bytes.fromhex(l[2])
         if data[off:off + len(old)] != old:
             sys.exit('unexpected byte at 0x%x' % off)

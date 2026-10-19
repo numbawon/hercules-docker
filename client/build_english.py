@@ -22,12 +22,14 @@ DATES = ['2017-06-14', '2017-12-13', '2018-06-20', '2019-06-05', '2020-01-22']
 # tables (job, skill and status ids) that this older exe's own files do not fully
 # define, which fails with "table index is nil". Missing constants get harmless
 # unique negative ids instead.
-PRELUDE = (b'do local n=0 for _,k in ipairs({"jobtbl","SKID","JOBID","EFST_IDs","EnumVAR","PetAccIDs"}) '
-           b'do local t=rawget(_G,k) if type(t)=="table" and not getmetatable(t) then '
-           b'setmetatable(t,{__index=function() n=n-1 return n end}) end end end\n')
+PRELUDE = (b'do local n=0 for _,k in ipairs({"jobtbl","SKID","JOBID","EFST_IDs","EnumVAR","PetAccIDs"}) do '
+           b'local t=rawget(_G,k) if type(t)=="table" then local m=getmetatable(t) '
+           b'if not (m and m.__metatable) then local old=m and m.__index '
+           b'setmetatable(t,{__index=function(tt,key) local v if type(old)=="function" then v=old(tt,key) '
+           b'elseif type(old)=="table" then v=old[key] end if v==nil then n=n-1 v=n end return v end}) end end end end\n')
 SHIMMED = ('datainfo', 'skillinfoz', 'stateicon')
 # needs files this client does not ship, so it stays Korean
-SKIPPED = ('worldviewdata',)
+SKIPPED = ('worldviewdata', 'datainfo/addrandomoptionnametable.lub')
 # SystemEN file -> the name the 2020-02-19 exe loads from System/
 RENAMES = {
     'itemInfo.lua': 'itemInfo_true.lub',
@@ -79,7 +81,8 @@ def main(repo, client):
     mine = open(keep, 'rb').read() if os.path.exists(keep) else None
     os.path.exists(os.path.join(sd, 'clientinfo.xml')) and os.remove(os.path.join(sd, 'clientinfo.xml'))
     for d in SKIPPED:
-        shutil.rmtree(os.path.join(sd, 'luafiles514', 'lua files', d), ignore_errors=True)
+        t = os.path.join(sd, 'luafiles514', 'lua files', d)
+        shutil.rmtree(t, ignore_errors=True) if os.path.isdir(t) else os.path.isfile(t) and os.remove(t)
     shutil.rmtree(os.path.join(client, 'data', 'luafiles514'), ignore_errors=True)
     overlay(sd, os.path.join(client, 'data'))
     lf = os.path.join(client, 'data', 'luafiles514', 'lua files')
@@ -88,7 +91,8 @@ def main(repo, client):
             for f in files:
                 if f.lower().endswith('.lub') and f.lower() != 'skillid.lub':
                     p = os.path.join(root, f)
-                    open(p, 'wb').write(PRELUDE + open(p, 'rb').read())
+                    body = open(p, 'rb').read()
+                    open(p, 'wb').write(PRELUDE + body)
     if mine is not None:
         open(keep, 'wb').write(mine)
     # System/: translated tables and the item info loader
