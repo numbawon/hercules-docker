@@ -85,6 +85,11 @@ Update Everything" to create the `cp_*` tables. The config is generated from
 the environment on every start (`fluxcp/render-config.php`), with
 `UseMD5` off to match this server's plain stored passwords.
 
+Then run `./import-db-tables.sh` once: it loads the item and monster tables
+(`item_db`, `mob_db` and friends) from the image into MariaDB. The game server
+does not need them, but FluxCP's account, character, item and monster pages
+fail without them.
+
 `./set-password.sh <account>` changes a player's password from the shell
 without the value ending up in history or logs.
 

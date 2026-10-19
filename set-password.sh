@@ -5,6 +5,7 @@
 # most 23 characters, and the client sends them as typed, so this is a plain
 # column update. Takes effect at the next login.
 set -e
+cd "$(dirname "$0")"
 [ -n "$1" ] || { echo "usage: $0 <account>"; exit 1; }
 printf 'New password for %s: ' "$1"
 stty -echo; read -r pw; stty echo; echo
