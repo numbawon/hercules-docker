@@ -1,0 +1,33 @@
+# FluxCP, the web control panel (fluxcp/). An override file so the game
+# server itself stays standalone:
+#   docker compose -f compose.yml -f compose.panel.yml up -d --build fluxcp
+# It publishes no port. It joins an external overlay network (default `edge`,
+# the one a reverse proxy lives on) and a proxy reaches http://fluxcp:80 from
+# there. Put an authenticating proxy in front: the panel has its own game
+# account login, but registration and the admin menus are not something to
+# leave open to the internet. Set FLUXCP_HOST (public hostname) and
+# FLUXCP_INSTALLER_PASSWORD in .env.
+services:
+  fluxcp:
+    build:
+      context: ./fluxcp
+    image: ${FLUXCP_IMAGE:-fluxcp:local}
+    restart: unless-stopped
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID, NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      DB_HOST: db
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      FLUXCP_HOST: ${FLUXCP_HOST:?set FLUXCP_HOST in .env}
+      FLUXCP_INSTALLER_PASSWORD: ${FLUXCP_INSTALLER_PASSWORD:?set FLUXCP_INSTALLER_PASSWORD in .env}
+      SITE_TITLE: ${SITE_TITLE:-Family RO}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [default, edge]
+
+networks:
+  edge:
+    external: true
+    name: ${EDGE_NETWORK:-edge}

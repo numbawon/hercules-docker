@@ -65,6 +65,29 @@ patched to point at your server: see [docs/CLIENT.md](docs/CLIENT.md).
 The web/API server is built into the image (`command: api-server`) but not
 in the compose file, since only newer clients use it.
 
+## Web panel (optional)
+
+[FluxCP](https://github.com/HerculesWS/FluxCP) (the Hercules web control
+panel: account registration, password changes, character and item lookup,
+admin pages for group 99 accounts) is built from a pinned commit by
+`fluxcp/` and added with an override file:
+
+```
+docker compose -f compose.yml -f compose.panel.yml up -d --build fluxcp
+```
+
+Set `FLUXCP_HOST` and `FLUXCP_INSTALLER_PASSWORD` in `.env` first. The
+container publishes no port; it joins an existing overlay or bridge network
+(`EDGE_NETWORK`, default `edge`) so a reverse proxy can reach
+`http://fluxcp:80`. Put an authenticating proxy in front of it. On first run
+open `/?module=install`, enter the installer password and run "Install or
+Update Everything" to create the `cp_*` tables. The config is generated from
+the environment on every start (`fluxcp/render-config.php`), with
+`UseMD5` off to match this server's plain stored passwords.
+
+`./set-password.sh <account>` changes a player's password from the shell
+without the value ending up in history or logs.
+
 ## License
 
 The build files in this repository are MIT licensed (`LICENSE`). Hercules itself
