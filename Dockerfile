@@ -4,8 +4,12 @@
 # players run, so they are build arguments, not runtime settings.
 FROM debian:bookworm-slim AS build
 ARG HERCULES_REF=v2026.09
-ARG PACKETVER=20190530
+ARG PACKETVER=20200219
 ARG RENEWAL=ON
+# Which family of client executable the players run. Hercules uses different
+# packet layouts for them: main (plain Ragexe, the default), RE (RagexeRE),
+# zero, sak or ad.
+ARG PACKETTYPE=main
 # Upstream pulls its C dependencies (cJSON, MariaDB connector, PCRE, zlib,
 # giflib) through Conan, wired in by cmake_modules/conan_provider.cmake.
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -17,10 +21,17 @@ ENV PATH=/opt/conan/bin:$PATH
 RUN conan profile detect
 RUN git clone --depth 1 --branch "${HERCULES_REF}" https://github.com/HerculesWS/Hercules.git /src
 WORKDIR /src
-RUN cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+RUN set -e; \
+    case "${PACKETTYPE}" in \
+      main) TYPE_FLAG="" ;; \
+      RE|zero|sak|ad) TYPE_FLAG="-DENABLE_PACKETVER_$(echo ${PACKETTYPE} | tr a-z A-Z)=ON" ;; \
+      *) echo "PACKETTYPE must be main, RE, zero, sak or ad" >&2; exit 1 ;; \
+    esac; \
+    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=cmake_modules/conan_provider.cmake \
       -DPACKETVER=${PACKETVER} -DENABLE_RENEWAL=${RENEWAL} -DENABLE_LIBBACKTRACE=OFF \
- && cmake --build build
+      ${TYPE_FLAG}; \
+    cmake --build build
 RUN mkdir -p /out && cp -a build/src/login/login-server build/src/char/char-server \
       build/src/map/map-server build/src/api/api-server /out/ \
  && cp -a build/runtime-lib /out/runtime-lib

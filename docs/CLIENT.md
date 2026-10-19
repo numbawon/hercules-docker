@@ -1,44 +1,77 @@
 # Pointing a client at your server
 
-The server is built for one client date (`PACKETVER`, default `20190530`).
-The client must be that date, or one very close to it, or the character
-screen and in-game packets fail in odd ways. The steps below are for the
-default build; they have not been tested against a specific client download,
-so treat client-specific details (file names, tool menus) as a guide.
+The server is built for one client: the plain `Ragexe.exe` from the kRO
+build of **2020-02-19** (`PACKETVER=20200219`, packet family `main`). The
+client you run must be that build, or the character screen and in-game
+packets fail in odd ways. The patch names below are copied from NEMO's own
+patch list; the steps have not been run end to end against a live server
+yet, so the "If it will not connect" table at the bottom matters.
 
-## 1. Get the right client
+## 1. Get the client
 
-- A **full client** dated 2019-05-30, with its own `data.grf` and friends.
-  The executable is usually named `Ragexe.exe` or `RagexeRE.exe`; "RE" is the
-  renewal client, which matches the default `RENEWAL=ON` build. A
-  `RagexeRE_2019_05_30*` executable is the target.
-- Keep it in its own folder, away from any official install.
+The full kRO client dated 2020-03-04 contains the 2020-02-19 executables.
+It is listed on <http://nemo.herc.ws/downloads/>:
 
-If your client is a different date, rebuild the server with that date
-(see the README's build arguments). The date is compiled in.
+```
+http://rofull.gnjoy.com/Ragnarok_200304.zip     (3.8 GB, plain files)
+```
 
-## 2. Make the executable safe to run
+Unzip it into its own folder. You need these from it:
 
-Official Korean-origin clients ship with anti-cheat that refuses to run
-against a private server (HackShield, nProtect GameGuard). Either:
+| File | Use |
+|---|---|
+| `Ragexe.exe` | **the one to patch and run** |
+| `data.grf`, `rdata.grf` | game data |
+| `CDClient.dll` | Gravity's anti-cheat; replaced in step 3 |
 
-- use an executable that is already **cleaned** (community "RagexeRE" builds
-  for emulators usually are), or
-- patch yours with **NEMO**, the usual client patcher for emulators: load the
-  executable, tick *Disable HShield* / *Disable nProtect GameGuard*, plus
-  anything your client needs for English text, then save the patched copy and
-  use that.
+Ignore `RagexeRE.exe` (a different packet family), `Ragnarok.exe` (the
+official launcher, which would try to log in to Gravity) and `Setup.exe`.
+Keep an untouched copy of `Ragexe.exe`.
 
-Keep an untouched copy of the original executable.
+## 2. Patch the executable with NEMO
 
-## 3. Point the client at your server
+NEMO is the patcher the Hercules project uses. Its source and Windows
+build are at <https://gitlab.com/4144/Nemo> (download the master zip and
+run `NEMO.exe`; it needs no install). Patch lists per client are at
+<http://nemo.herc.ws/>.
 
-This needs no exe patching. The client reads `data/clientinfo.xml`; a loose
-file in the client's `data` folder overrides the one inside the GRF.
+1. Run `NEMO.exe`, choose **Select Client** and pick a *copy* of
+   `Ragexe.exe`.
+2. Tick these patches, by name:
 
-1. Open the client's GRF with a GRF editor and extract its
-   `data/clientinfo.xml` (or use the one that came with the download).
-2. Change only the server block, leaving everything else as it was:
+   | Patch | Why |
+   |---|---|
+   | **Disable Cheat Defender Game Guard** | stops the anti-cheat from refusing a private server |
+   | **Copy patched Cheat Defender Game Guard** | copies a stub `CDClient.dll` next to the exe (step 3) |
+   | **Disable 1rag1 type parameters** | lets the exe start directly, without the launcher's arguments |
+   | **Enable DNS support for clientinfo.xml** | needed because the server address is a hostname |
+   | **Read Data Folder First** | loose files in `data/` override the GRFs, so a custom `clientinfo.xml` wins |
+
+   Optional: **Disable Multiple Windows** if you want to run two clients at
+   once.
+3. Choose **Apply Patch**, then save. NEMO writes the patched file to its
+   `Output` folder (named like `Ragexe_<date>.exe`). Copy it into the
+   client folder next to the GRFs. Name it anything; this guide calls it
+   `Ragexe_patched.exe`.
+
+If a patch is greyed out or reported as "failed", that patch does not
+match this exe. Check the exe is really the 2020-02-19 build, using
+the report page for it on nemo.herc.ws, rather than forcing it.
+
+## 3. Replace the anti-cheat DLL
+
+The patched exe still loads `CDClient.dll`. Use NEMO's drop-in
+replacement, which does nothing: `Input/CDClient.dll` in the NEMO folder
+overwrites the client's own. (The "Copy patched Cheat Defender Game
+Guard" patch does the copy for you into NEMO's `Output` folder.)
+
+## 4. Point the client at the server
+
+Create `data/clientinfo.xml` in the client folder (make the `data`
+folder if it does not exist; the *Read Data Folder First* patch makes it
+win over the one in the GRF). Start from the file inside `data.grf`
+(extract it with a GRF editor), change only the connection block, and
+leave every other value alone:
 
 ```xml
 <connection>
@@ -49,32 +82,28 @@ file in the client's `data` folder overrides the one inside the GRF.
 </connection>
 ```
 
-   Do not change `version` or `langtype` from the file's own values.
-3. Save it as `data/clientinfo.xml` next to the GRFs (create the `data`
-   folder if it is missing).
+Make sure `DATA.INI` in the client folder lists the GRFs the way the
+official client does (`1=rdata.grf`, `2=data.grf`).
 
-`ro.numbawon.xyz` resolves to the server's LAN address at home and to your
-public address elsewhere. Any other host or IP your DNS gives works too.
+At home `ro.numbawon.xyz` resolves to the server's LAN address; elsewhere
+it is your public address.
 
-## 4. Run it
+## 5. Run it
 
-- Run the patched executable. On modern Windows, set it to run as
-  administrator and in a compatibility mode (Windows 7 or XP SP3), and turn on
-  reduced colour mode if the screen is black. A DirectX wrapper such as
-  dgVoodoo is the usual fix for a black or glitchy render.
-- Some clients start only through their `setup.exe` or with the argument
-  `1rag1`; use a shortcut ending in `Ragexe.exe 1rag1` if you see "Please run
-  from the official launcher".
+Run `Ragexe_patched.exe`. On Windows 10/11 set it to run as
+administrator and, if the screen is black, in Windows 7 compatibility
+mode; a DirectX wrapper such as dgVoodoo fixes most remaining rendering
+problems.
 
-## 5. Create the account
+## 6. Create the account
 
 Registration is on by default. At the login screen type a name ending in
-`_M` (male) or `_F` (female), such as `alex_M`, with the password you want,
-and press Login. The first attempt creates the account `alex`; afterwards
-log in as just `alex`. Set `NEW_ACCOUNT=false` in `.env` to turn this off and
-create accounts by hand.
+`_M` (male) or `_F` (female), such as `alex_M`, with the password you
+want, and press Login. The first attempt creates the account `alex`;
+afterwards log in as just `alex`. Set `NEW_ACCOUNT=false` in `.env` to
+turn this off and create accounts by hand.
 
-## 6. Make an admin
+## 7. Make an admin
 
 Log in once, then on the server:
 
@@ -89,10 +118,11 @@ Log out and back in. Group 99 is the full admin group in `conf/groups.conf`.
 
 | Symptom | Likely cause |
 |---|---|
-| "Cannot connect" at login | Router port 6900 not forwarded, or the DNS record is wrong |
-| Logs in, then fails to reach the character screen | Port 6121 not forwarded, or `PUBLIC_HOST` is not what you typed in the client |
-| Logs in, character screen shown, game never loads | Port 5121 not forwarded |
-| Immediate disconnect or garbled characters | Client date is not the server's `PACKETVER` |
-| "Rejected by server" with a valid account | Wrong server version in `clientinfo.xml` |
+| Client closes at start or complains about the game guard | step 2 or 3 not done; the original `CDClient.dll` is still in use |
+| "Cannot connect" at login | router port 6900 not forwarded, or the DNS record is wrong |
+| Logs in, then fails to reach the character screen | port 6121 not forwarded, or `PUBLIC_HOST` is not what the client resolves |
+| Logs in, character screen shown, game never loads | port 5121 not forwarded |
+| Immediate disconnect or garbled characters | the exe is not the 2020-02-19 `Ragexe`, so it does not match `PACKETVER` |
+| Address ignored, always connects to the wrong place | the DNS support patch is missing, or the loose `clientinfo.xml` is not being read |
 
 Watch the servers while you try: `docker compose logs -f login char map`.

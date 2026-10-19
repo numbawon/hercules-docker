@@ -7,8 +7,9 @@ x-hercules: &hercules
     context: .
     args:
       HERCULES_REF: ${HERCULES_REF:-v2026.09}
-      PACKETVER: ${PACKETVER:-20190530}
+      PACKETVER: ${PACKETVER:-20200219}
       RENEWAL: ${RENEWAL:-ON}
+      PACKETTYPE: ${PACKETTYPE:-main}
   restart: unless-stopped
   cap_drop: [ALL]
   security_opt: [no-new-privileges:true]

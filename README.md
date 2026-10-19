@@ -26,7 +26,7 @@ Keep the database port closed; it is not published.
 ## Prebuilt image
 
 `numbawon/hercules` on Docker Hub is built with the defaults below
-(`v2026.09-pv20190530-re`, also `latest`). Use it with
+(`v2026.09-pv20200219`, also `latest`). Use it with
 `HERCULES_IMAGE=numbawon/hercules:latest docker compose up -d`. If your client
 is a different date, or you want pre-renewal rules, build your own with the
 arguments below: the client date is compiled in and cannot be changed at run
@@ -40,7 +40,7 @@ run. Change them in `.env` and rebuild (`docker compose build --no-cache`).
 | Argument | Default | Meaning |
 |---|---|---|
 | `HERCULES_REF` | `v2026.09` | Upstream git tag or branch |
-| `PACKETVER` | `20190530` | Client date, `YYYYMMDD` |
+| `PACKETVER` | `20200219` | Client date, `YYYYMMDD` |
 | `RENEWAL` | `ON` | `ON` renewal rules, `OFF` pre-renewal |
 
 ## Configuration
