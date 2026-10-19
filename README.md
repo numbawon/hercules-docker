@@ -23,6 +23,15 @@ Hercules silently truncates longer ones and the servers then fail to log in.
 Ports to open: **6900** (login), **6121** (char), **5121** (map), all TCP.
 Keep the database port closed; it is not published.
 
+## Prebuilt image
+
+`numbawon/hercules` on Docker Hub is built with the defaults below
+(`v2026.09-pv20190530-re`, also `latest`). Use it with
+`HERCULES_IMAGE=numbawon/hercules:latest docker compose up -d`. If your client
+is a different date, or you want pre-renewal rules, build your own with the
+arguments below: the client date is compiled in and cannot be changed at run
+time.
+
 ## Build arguments
 
 `PACKETVER` and `RENEWAL` are compiled in and must match the client players
