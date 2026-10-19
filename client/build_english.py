@@ -18,6 +18,16 @@ import sys
 
 # compatibility layers up to the client date, in the project's own order
 DATES = ['2017-06-14', '2017-12-13', '2018-06-20', '2019-06-05', '2020-01-22']
+# The project's Lua tables are written for newer clients and index into constant
+# tables (job, skill and status ids) that this older exe's own files do not fully
+# define, which fails with "table index is nil". Missing constants get harmless
+# unique negative ids instead.
+PRELUDE = (b'do local n=0 for _,k in ipairs({"jobtbl","SKID","JOBID","EFST_IDs","EnumVAR","PetAccIDs"}) '
+           b'do local t=rawget(_G,k) if type(t)=="table" and not getmetatable(t) then '
+           b'setmetatable(t,{__index=function() n=n-1 return n end}) end end end\n')
+SHIMMED = ('datainfo', 'skillinfoz', 'stateicon')
+# needs files this client does not ship, so it stays Korean
+SKIPPED = ('worldviewdata',)
 # SystemEN file -> the name the 2020-02-19 exe loads from System/
 RENAMES = {
     'itemInfo.lua': 'itemInfo_true.lub',
@@ -68,7 +78,17 @@ def main(repo, client):
     keep = os.path.join(client, 'data', 'clientinfo.xml')
     mine = open(keep, 'rb').read() if os.path.exists(keep) else None
     os.path.exists(os.path.join(sd, 'clientinfo.xml')) and os.remove(os.path.join(sd, 'clientinfo.xml'))
+    for d in SKIPPED:
+        shutil.rmtree(os.path.join(sd, 'luafiles514', 'lua files', d), ignore_errors=True)
+    shutil.rmtree(os.path.join(client, 'data', 'luafiles514'), ignore_errors=True)
     overlay(sd, os.path.join(client, 'data'))
+    lf = os.path.join(client, 'data', 'luafiles514', 'lua files')
+    for d in SHIMMED:
+        for root, _, files in os.walk(os.path.join(lf, d)):
+            for f in files:
+                if f.lower().endswith('.lub') and f.lower() != 'skillid.lub':
+                    p = os.path.join(root, f)
+                    open(p, 'wb').write(PRELUDE + open(p, 'rb').read())
     if mine is not None:
         open(keep, 'wb').write(mine)
     # System/: translated tables and the item info loader
@@ -79,7 +99,7 @@ def main(repo, client):
         p = os.path.join(se, f)
         if f in RENAMES and os.path.isfile(p):
             shutil.copyfile(p, os.path.join(system, RENAMES[f]))
-        elif os.path.isfile(p) and f.endswith('.lua'):
+        elif os.path.isfile(p) and f.endswith(('.lua', '.lub')):
             shutil.copyfile(p, os.path.join(system, f))
     os.makedirs(os.path.join(system, 'LuaFiles514'), exist_ok=True)
     for f in os.listdir(os.path.join(se, 'LuaFiles514')):
