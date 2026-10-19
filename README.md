@@ -60,7 +60,7 @@ Custom NPC scripts go in `./custom-npc` (mounted at `npc/custom`).
 ## What is not included
 
 Game clients and data files. Players need a client matching `PACKETVER`,
-patched to point at your server.
+patched to point at your server: see [docs/CLIENT.md](docs/CLIENT.md).
 
 The web/API server is built into the image (`command: api-server`) but not
 in the compose file, since only newer clients use it.
