@@ -121,6 +121,9 @@ if __name__ == "__main__":
             write(out, "font%d" % size, size)
         write(out, "font4-arial", 4, "Arial")
         write(out, "font6-arial", 6, "Arial")
+        # A wide, coding-style face: expect to need a smaller size than Arial.
+        for size in (2, 3, 4):
+            write(out, "font%d-caskaydia" % size, size, "CaskaydiaCove NF")
         print("wrote profiles to", out)
     else:
         sys.exit(__doc__)

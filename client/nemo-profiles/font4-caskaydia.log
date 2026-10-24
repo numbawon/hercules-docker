@@ -1,0 +1,37 @@
+9 Disable 1rag1 type parameters
+14 Disable Hallucination Wavy Screen
+23 Enable /who command
+24 Fix Camera Angles
+34 Enable /showname
+35 Read Data Folder First
+36 Always read msgstringtable.txt
+38 Remove Gravity Ads
+39 Remove Gravity Logo
+41 Disable Nagle Algorithm
+44 Translate Client
+46 Use Normal Guild Brackets
+48 Use Plain Text Descriptions
+49 Enable Multiple GRFs
+53 Use Ascii on All LangTypes
+64 @ Bug Fix
+65 Load Custom lua file instead of iteminfo*.lub
+73 Remove Hourly Announce
+84 Remove Serial Display
+90 Enable DNS Support
+213 Disable Help Message on Login
+230 Always load Korea ExternalSettings lua file
+231 Remove hardcoded address/port
+232 Restore old login packet
+244 Disable Cheat Defender Game Guard
+284 Copy patched Cheat Defender Game Guard
+290 Hide build info in client
+291 Hide packets from peek
+326 Disable OTP Login Packet
+335 Fix HTTP Emblems in clients
+338 Additional client validation
+348 Send client flags to server
+362 Fixes the Korean Job name issue with LangType
+391 Adjust all fonts logical size
+397 Change all fonts face
+404 Use borderless mode in full screen
+427 Check is servertype in xml file was set to correct value
